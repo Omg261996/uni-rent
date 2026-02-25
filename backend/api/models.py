@@ -27,7 +27,8 @@ class User(AbstractUser):
     phone = models.CharField(max_length=15)
     branch = models.CharField(max_length=50)
     year = models.IntegerField()
-
+    USERNAME_FIELD='username'
+    REQUIRED_FIELDS=['email']
     objects = UserManager()
 
     def __str__(self):

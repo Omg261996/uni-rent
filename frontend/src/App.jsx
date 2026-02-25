@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-
+import ItemDetail from "./pages/ItemDetail";
+import AddItem from "./pages/AddItem";
 function App() {
 
   // check login
@@ -10,7 +11,9 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-
+        
+        <Route path="/add-item" element={<AddItem />} />
+          
         {/* Default route */}
         <Route path="/" element={<Navigate to="/login" />} />
 
@@ -22,6 +25,11 @@ function App() {
           path="/dashboard"
           element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
         />
+        <Route
+          path="/item/:id"
+          element={isLoggedIn ? <ItemDetail /> : <Navigate to="/login" />}
+/>
+<Route path="/add" element={isLoggedIn ? <AddItem /> : <Navigate to="/login" />} />
 
       </Routes>
     </BrowserRouter>

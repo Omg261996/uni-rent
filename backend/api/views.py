@@ -1,11 +1,37 @@
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import AllowAny
 from .models import Item, User
 from .serializers import ItemSerializer, UserSerializer
 
 
+# ---------------- LOGIN ----------------
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def login_user(request):
+
+    username=request.data.get("username")
+    password=request.data.get("password")
+
+    if not username or not password:
+        return Response({"error": "Username and password required"}, status=400)
+
+    user = authenticate(request, username=username, password=password)
+
+    if user is not None:
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            "token": str(refresh.access_token),
+            "username": user.username
+        })
+
+    return Response({"error": "Invalid credentials"}, status=401)
+
+
+# ---------------- GET ALL ITEMS ----------------
 @api_view(["GET"])
 def get_items(request):
     items = Item.objects.all().order_by("-created_at")
@@ -13,6 +39,7 @@ def get_items(request):
     return Response(serializer.data)
 
 
+# ---------------- GET SINGLE ITEM ----------------
 @api_view(["GET"])
 def get_item(request, id):
     item = Item.objects.get(id=id)
@@ -20,25 +47,21 @@ def get_item(request, id):
     return Response(serializer.data)
 
 
+# ---------------- CREATE ITEM ----------------
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_item(request):
+    serializer = ItemSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save(owner=request.user)
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)
+
+
+# ---------------- GET USER PROFILE ----------------
 @api_view(["GET"])
 def get_user(request, id):
     user = User.objects.get(id=id)
     serializer = UserSerializer(user)
     return Response(serializer.data)
-
-@api_view(["POST"])
-def login_user(request):
-    username = request.data.get("username")
-    password = request.data.get("password")
-
-    user = authenticate(username=username, password=password)
-
-    if user is not None:
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            "token": str(refresh.access_token),
-            "user_id": user.id,
-            "username": user.username
-        })
-    else:
-        return Response({"error": "Invalid credentials"}, status=400)

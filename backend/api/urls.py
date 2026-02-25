@@ -6,5 +6,6 @@ urlpatterns = [
     path("items/<int:id>/", views.get_item),
     path("users/<int:id>/", views.get_user),
     path("login/", views.login_user),
+    path("items/create/", views.create_item),
 ]
 
