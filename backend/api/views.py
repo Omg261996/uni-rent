@@ -6,7 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
 from .models import Item, User
 from .serializers import ItemSerializer, UserSerializer
-
+from rest_framework import status
+from .models import Item
 
 # ---------------- LOGIN ----------------
 @api_view(["POST"])
@@ -65,3 +66,20 @@ def get_user(request, id):
     user = User.objects.get(id=id)
     serializer = UserSerializer(user)
     return Response(serializer.data)
+
+#------------------- delete --------------
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_item(request, pk):
+    try:
+        item = Item.objects.get(pk=pk)
+
+        if item.owner != request.user:
+            return Response({"error": "Not allowed"}, status=403)
+
+        item.delete()
+        return Response({"message": "Item deleted"}, status=200)
+
+    except Item.DoesNotExist:
+        return Response({"error": "Item not found"}, status=404)

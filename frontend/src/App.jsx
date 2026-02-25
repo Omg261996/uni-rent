@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import ItemDetail from "./pages/ItemDetail";
 import AddItem from "./pages/AddItem";
+import MyItems from "./pages/MyItems";
 function App() {
 
   // check login
@@ -11,7 +12,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        
+
         <Route path="/add-item" element={<AddItem />} />
           
         {/* Default route */}
@@ -25,6 +26,8 @@ function App() {
           path="/dashboard"
           element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
         />
+        <Route path="/my-items" element={<MyItems />} />
+        
         <Route
           path="/item/:id"
           element={isLoggedIn ? <ItemDetail /> : <Navigate to="/login" />}

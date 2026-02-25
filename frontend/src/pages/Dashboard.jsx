@@ -16,6 +16,10 @@ function Dashboard() {
     <div style={{ padding: "20px" }}>
       <h2>Available Items</h2>
 <button onClick={() => navigate("/add-item")}>Add Item</button>
+<button onClick={() => navigate("/my-items")}>
+  My Items
+</button>
+
       <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
         {items.map(item => (
           <div
