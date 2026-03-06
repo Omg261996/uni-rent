@@ -1,39 +1,32 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ItemDetail from "./pages/ItemDetail";
 import AddItem from "./pages/AddItem";
 import MyItems from "./pages/MyItems";
-function App() {
+import MyBookings from "./pages/MyBookings";
+import IncomingRequests from "./pages/IncomingRequests";
 
-  // check login
+function ProtectedRoute({ children }) {
   const isLoggedIn = localStorage.getItem("token");
+  return isLoggedIn ? children : <Navigate to="/login" />;
+}
 
+function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        <Route path="/add-item" element={<AddItem />} />
-          
-        {/* Default route */}
-        <Route path="/" element={<Navigate to="/login" />} />
-
-        {/* Login */}
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-
-        {/* Protected dashboard */}
-        <Route
-          path="/dashboard"
-          element={isLoggedIn ? <Dashboard /> : <Navigate to="/login" />}
-        />
-        <Route path="/my-items" element={<MyItems />} />
-        
-        <Route
-          path="/item/:id"
-          element={isLoggedIn ? <ItemDetail /> : <Navigate to="/login" />}
-/>
-<Route path="/add" element={isLoggedIn ? <AddItem /> : <Navigate to="/login" />} />
-
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/item/:id" element={<ProtectedRoute><ItemDetail /></ProtectedRoute>} />
+        <Route path="/add-item" element={<ProtectedRoute><AddItem /></ProtectedRoute>} />
+        <Route path="/my-items" element={<ProtectedRoute><MyItems /></ProtectedRoute>} />
+        <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
+        <Route path="/incoming-requests" element={<ProtectedRoute><IncomingRequests /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

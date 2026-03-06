@@ -1,53 +1,58 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 function Dashboard() {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetch("http://127.0.0.1:8000/api/items/")
       .then(res => res.json())
-      .then(data => setItems(data))
-      .catch(err => console.log(err));
+      .then(data => { setItems(data); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Available Items</h2>
-<button onClick={() => navigate("/add-item")}>Add Item</button>
-<button onClick={() => navigate("/my-items")}>
-  My Items
-</button>
+    <>
+      <Navbar />
+      <div className="page">
+        <div className="page-header">
+          <h1>Browse Items</h1>
+          <button className="btn primary" onClick={() => navigate("/add-item")}>
+            + List an Item
+          </button>
+        </div>
 
-      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-        {items.map(item => (
-          <div
-            key={item.id}
-            onClick={() => navigate(`/item/${item.id}`)}
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              width: "200px",
-              borderRadius: "10px",
-              cursor: "pointer"
-            }}
-          >
-            <img
-              src={`http://127.0.0.1:8000${item.image}`}
-              alt=""
-              style={{ width: "100%", height: "150px", objectFit: "cover" }}
-            />
-            <h3>{item.title}</h3>
-            <p>₹{item.price_per_day}/day</p>
-            <p>Owner: {item.owner.username}</p>
+        {loading ? (
+          <p style={{ color: "var(--muted)" }}>Loading items...</p>
+        ) : items.length === 0 ? (
+          <div className="empty-state">
+            <h3>No items listed yet</h3>
+            <p>Be the first to list something!</p>
           </div>
-        
-        ))}
+        ) : (
+          <div className="items-grid">
+            {items.map(item => (
+              <div
+                key={item.id}
+                className="item-card"
+                onClick={() => navigate(`/item/${item.id}`)}
+              >
+                <img src={`http://127.0.0.1:8000${item.image}`} alt={item.title} />
+                <div className="item-card-body">
+                  <h3>{item.title}</h3>
+                  <p className="price">₹{item.price_per_day}/day</p>
+                  <p className="owner">by {item.owner.username} · {item.owner.branch} Y{item.owner.year}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </>
   );
 }
 
 export default Dashboard;
-

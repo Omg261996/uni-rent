@@ -1,77 +1,80 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 function AddItem() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [price_per_day, setPrice] = useState("");
+  const [price, setPrice] = useState("");
   const [image, setImage] = useState(null);
-
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
+    if (!title || !description || !price || !image) {
+      setError("All fields are required");
+      return;
+    }
+    setLoading(true);
+    setError("");
 
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("price_per_day", price_per_day);
+    formData.append("price_per_day", price);
     formData.append("image", image);
 
     const res = await fetch("http://127.0.0.1:8000/api/items/create/", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
 
+    setLoading(false);
     if (res.ok) {
-      navigate("/dashboard");
+      navigate("/my-items");
     } else {
-      alert("Error creating item");
+      setError("Failed to create item. Try again.");
     }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Add Item</h2>
+    <>
+      <Navbar />
+      <div className="form-page">
+        <button className="btn ghost sm" onClick={() => navigate("/dashboard")} style={{ marginBottom: "24px" }}>
+          ← Back
+        </button>
+        <h1>List an Item</h1>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Title"
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-        <br /><br />
+        <div className="form-stack">
+          <div>
+            <label>Title</label>
+            <input placeholder="e.g. Scientific Calculator" onChange={e => setTitle(e.target.value)} />
+          </div>
+          <div>
+            <label>Description</label>
+            <textarea rows={4} placeholder="Describe your item..." onChange={e => setDescription(e.target.value)} style={{ resize: "vertical" }} />
+          </div>
+          <div>
+            <label>Price per day (₹)</label>
+            <input type="number" placeholder="e.g. 50" onChange={e => setPrice(e.target.value)} />
+          </div>
+          <div>
+            <label>Photo</label>
+            <input type="file" accept="image/*" onChange={e => setImage(e.target.files[0])} />
+          </div>
 
-        <textarea
-          placeholder="Description"
-          onChange={(e) => setDescription(e.target.value)}
-          required
-        />
-        <br /><br />
+          {error && <p style={{ color: "var(--danger)", fontSize: "14px" }}>{error}</p>}
 
-        <input
-          type="number"
-          placeholder="Price per day"
-          onChange={(e) => setPrice(e.target.value)}
-          required
-        />
-        <br /><br />
-
-        <input
-          type="file"
-          onChange={(e) => setImage(e.target.files[0])}
-          required
-        />
-        <br /><br />
-
-        <button type="submit">Create Item</button>
-      </form>
-    </div>
+          <button className="btn primary" onClick={handleSubmit} disabled={loading}>
+            {loading ? "Listing..." : "List Item"}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 

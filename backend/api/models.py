@@ -6,7 +6,6 @@ class UserManager(BaseUserManager):
     def create_user(self, username, email=None, password=None, **extra_fields):
         if not username:
             raise ValueError("Username required")
-
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
         user.set_password(password)
@@ -19,7 +18,6 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('phone', '0000000000')
         extra_fields.setdefault('branch', 'CSE')
         extra_fields.setdefault('year', 1)
-
         return self.create_user(username, email, password, **extra_fields)
 
 
@@ -27,12 +25,15 @@ class User(AbstractUser):
     phone = models.CharField(max_length=15)
     branch = models.CharField(max_length=50)
     year = models.IntegerField()
-    USERNAME_FIELD='username'
-    REQUIRED_FIELDS=['email']
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['email']
     objects = UserManager()
-
+    groups = models.ManyToManyField('auth.Group', related_name='api_user_set', blank=True)
+    user_permissions = models.ManyToManyField('auth.Permission', related_name='api_user_set', blank=True)
     def __str__(self):
         return self.username
+
+
 class Item(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="items")
     title = models.CharField(max_length=200)
@@ -46,11 +47,11 @@ class Item(models.Model):
         return self.title
 
 
-
-
 class BookingRequest(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="requests")
     requester = models.ForeignKey(User, on_delete=models.CASCADE)
+    start_date = models.DateField(null=True, blank=True)        # ✅ Added
+    end_date = models.DateField(null=True, blank=True)          # ✅ Added
     status = models.CharField(
         max_length=20,
         choices=[
@@ -63,4 +64,4 @@ class BookingRequest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.requester.username} -> {self.item.name}"
+        return f"{self.requester.username} -> {self.item.title}"  # ✅ .name → .title
