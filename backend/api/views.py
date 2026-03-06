@@ -8,6 +8,7 @@ from .models import Item, User
 from .serializers import ItemSerializer, UserSerializer
 from rest_framework import status
 from .models import Item
+from .models import BookingRequest, Item
 
 # ---------------- LOGIN ----------------
 @api_view(["POST"])
@@ -56,7 +57,7 @@ def create_item(request):
 
     if serializer.is_valid():
         serializer.save(owner=request.user)
-        return Response(serializer.data)
+        return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
 
@@ -80,6 +81,45 @@ def delete_item(request, pk):
 
         item.delete()
         return Response({"message": "Item deleted"}, status=200)
+
+    except Item.DoesNotExist:
+        return Response({"error": "Item not found"}, status=404)
+    
+
+# ----------- REQUEST BOOKING ------------
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def request_booking(request, item_id):
+    try:
+        item = Item.objects.get(id=item_id)
+
+        # item available check
+        if not item.is_available:
+            return Response({"error": "Item not available"}, status=400)
+
+        # owner khud request nahi kar sakta
+        if item.owner == request.user:
+            return Response({"error": "You cannot book your own item"}, status=400)
+
+        # duplicate request check
+        existing = BookingRequest.objects.filter(
+            item=item,
+            requester=request.user,
+            status="pending"
+        )
+
+        if existing.exists():
+            return Response({"error": "Request already sent"}, status=400)
+
+        booking = BookingRequest.objects.create(
+            item=item,
+            requester=request.user
+        )
+
+        return Response({
+            "message": "Booking request sent"
+        }, status=201)
 
     except Item.DoesNotExist:
         return Response({"error": "Item not found"}, status=404)

@@ -8,5 +8,6 @@ urlpatterns = [
     path("login/", views.login_user),
     path("items/create/", views.create_item),
     path('items/delete/<int:pk>/', delete_item),
+    
 ]
 
